@@ -1,4 +1,32 @@
+// Make the canvas moving using function() 
+
+(function(){
+    var timeouts = [];
+    var messageName = "zero-timeout-message";
+
+    function setZeroTimeout(fn){
+        timeouts.push(fn);
+        window.postMessage(messageName, "*");
+    }
+
+    function handleMessage(event){
+        if(event.source == window && event.data == messageName){
+            event.stopPropagation();
+            if(timeouts.length>0){
+                var fn = timeouts.shift();
+                fn();
+            }
+        }
+    }
+
+    window.addEventListener('message', handleMessage, true);
+    window.setZeroTimeout = setZeroTimeout;
+})();
+
+
+var Neuvol;
 var game;
+var images = {};
 
 // Frame per second(speed)
 var FPS = 60;
@@ -56,6 +84,22 @@ Bird.prototype.update = function(){
 Bird.prototype.flap = function(){
     this.gravity = this.jump;
 }
+
+Bird.prototype.isDead = function(height,pipes){
+    if(this.y >= height || this.y+this.height <= 0 ){
+        return true;
+    }
+    for(var i in pipes){
+        if(!(
+            this.x > pipes[i].x + pipes[i].width || 
+            this.x + this.width < pipes[i].x || 
+            this.y > pipes[i].y + pipes[i].height || 
+            this.y + this.height< pipes[i].y 
+        )){
+            return true;
+        }
+    }
+}
 //** End Of Bird Class */
 
 //** Pipe Class */
@@ -84,8 +128,7 @@ Pipe.prototype.isOut = function(){
         return true;
     }
 }
-//** End of Pipe Class */
-
+//** End of Pipe Class *//
 
 //** Game Class */
 var Game = function(){
@@ -96,6 +139,7 @@ var Game = function(){
     this.width = this.canvas.width;
     this.height = this.canvas.height;
     this.interval = 0;
+    this.spawnInterval = 90;
     this.generation = 0;
     this.alives = 0;
 
@@ -122,6 +166,38 @@ Game.prototype.start = function(){
 Game.prototype.update = function(){
     this.backgroundX += this.backgroundSpeed;
 
+    var nextHoll = 0;
+    if(this.birds.length > 0 ){
+        for(var i = 0; i<this.pipes.length; i+=2){
+            if(this.pipes[i].x + this.pipes[i].width > this.birds[0].x){
+                nextHoll = this.pipes[i].height/this.height;
+                break;
+            }
+        }
+    }
+
+
+    for(var i=0; i<this.pipes.length;i++){
+        this.pipes[i].update();
+        if(this.pipes[i].isOut()){
+            this.pipes.slice(i,1);
+            i--;
+        }
+    }
+
+    if(this.interval == 0){
+        var deltaBord = 50;
+        var pipeHoll = 120;
+        var hollPosition = Math.round(Math.random() * (this.height- deltaBord * 2 - pipeHoll))+ deltaBord;
+        this.pipes.push(new Pipe({x: this.width, y: 0, height: hollPosition}));//push top pipe to the pipes array
+        this.pipes.push(new Pipe({x: this.width, y: hollPosition + pipeHoll, height: this.height}));
+        // console.log(this.pipes);
+    }
+
+    this.interval++;
+    if(this.interval == this.spawnInterval){
+        this.interval = 0;
+    }
 }
 
 Game.prototype.isEnd = function(){
@@ -139,6 +215,23 @@ Game.prototype.display = function(){
         this.ctx.drawImage(images.background, i*images.background.width - Math.floor(this.backgroundX % images.background.width), 0);
     }
 
+    for(var i in this.pipes){
+        if(i%2 == 0){
+            this.ctx.drawImage(images.pipetop, this.pipes[i].x, this.pipes[i].y + this.pipes[i].height - images.pipetop.height, this.pipes[i].width, images.pipetop.height);
+        }else{
+            this.ctx.drawImage(images.pipebottom, this.pipes[i].x, this.pipes[i].y, this.pipes[i].width, images.pipetop.height)
+        }
+    }
+
+    this.ctx.fillStyle = "#FFC600";
+    this.ctx.strokeStyle = "#CE9E00";
+    for(var i in this.birds){
+        if(this.birds[i].alive){
+            this.ctx.save();
+            this.ctx.translate(this.birds[i].x + this.birds[i].width/2, this.birds[i].y, this.birds[i].height/2);
+        }
+    }
+
     var self = this;
     requestAnimationFrame(function(){
         self.display();
@@ -150,7 +243,7 @@ window.onload = function(){
         bird: "./img/bird.png",
         background: "./img/background.png",
         pipetop: "./img/pipetop.png",
-        pipbottom: "./img/pipebottom.png",
+        pipebottom: "./img/pipebottom.png",
     }
     var start_game = function(){
         Neuvol = new Neuroevolution({
