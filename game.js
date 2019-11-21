@@ -1,27 +1,6 @@
 // Make the canvas moving using function() 
 
-(function(){
-    var timeouts = [];
-    var messageName = "zero-timeout-message";
 
-    function setZeroTimeout(fn){
-        timeouts.push(fn);
-        window.postMessage(messageName, "*");
-    }
-
-    function handleMessage(event){
-        if(event.source == window && event.data == messageName){
-            event.stopPropagation();
-            if(timeouts.length>0){
-                var fn = timeouts.shift();
-                fn();
-            }
-        }
-    }
-
-    window.addEventListener('message', handleMessage, true);
-    window.setZeroTimeout = setZeroTimeout;
-})();
 
 
 var Neuvol;
@@ -35,7 +14,7 @@ var speed = function(fps){
     FPS = parseInt(fps);
 }
 
-// Load Images
+// Load Images Function
 var loadImages = function(src, callback){
     var no_pic = 0;
     var loaded = 0;
@@ -105,6 +84,9 @@ Bird.prototype.isDead = function(height,pipes){
 }
 //** End Of Bird Class */
 
+
+
+
 //** Pipe Class */
 var Pipe = function(json){
     this.x = 0;
@@ -132,6 +114,9 @@ Pipe.prototype.isOut = function(){
     }
 }
 //** End of Pipe Class *//
+
+
+
 
 //** Game Class */
 var Game = function(){
@@ -173,15 +158,18 @@ Game.prototype.start = function(){
     this.alives = this.birds.length; // how many birds alive
 }
 
+
+
+/** GAME UPDATE FUNCTION */
 Game.prototype.update = function(){
 
     this.backgroundX += this.backgroundSpeed;
 
-    var nextHoll = 0;
+    var nextHole = 0;
     if(this.birds.length > 0 ){
         for(var i = 0; i<this.pipes.length; i+=2){
             if(this.pipes[i].x + this.pipes[i].width > this.birds[0].x){
-                nextHoll = this.pipes[i].height/this.height;
+                nextHole = this.pipes[i].height/this.height;
                 break;
             }
         }
@@ -189,7 +177,7 @@ Game.prototype.update = function(){
 
     for(var i in this.birds){
         if(this.birds[i].alive){
-            var inputs = [this.birds[i].y/this.height, nextHoll];
+            var inputs = [this.birds[i].y/this.height, nextHole];
             var res = this.gen[i].compute(inputs);
 
             if(res > 0.5 ){
@@ -221,9 +209,9 @@ Game.prototype.update = function(){
     if(this.interval == 0){
         var deltaBord = 50;
         var pipeHoll = 120;
-        var hollPosition = Math.round(Math.random() * (this.height- deltaBord * 2 - pipeHoll))+ deltaBord;
-        this.pipes.push(new Pipe({x: this.width, y: 0, height: hollPosition}));//push top pipe to the pipes array
-        this.pipes.push(new Pipe({x: this.width, y: hollPosition + pipeHoll, height: this.height}));
+        var holePosition = Math.round(Math.random() * (this.height- deltaBord * 2 - pipeHoll))+ deltaBord;
+        this.pipes.push(new Pipe({x: this.width, y: 0, height: holePosition}));//push top pipe to the pipes array
+        this.pipes.push(new Pipe({x: this.width, y: holePosition + pipeHoll, height: this.height}));
         // console.log(this.pipes);
     }
 
@@ -232,20 +220,30 @@ Game.prototype.update = function(){
         this.interval = 0;
     }
     this.score++;
-    this.maxScore = (this.score > this.maxScore) ? this.score : this.maxScore;
+    //update the max score
+    if(this.score > this.maxScore){
+        this.maxScore = this.score;
+    }else{
+        this.maxScore = this.maxScore;
+    }
+    // this.maxScore = (this.score > this.maxScore) ? this.score : this.maxScore; // update the max score
     var self = this;
 
-    if(FPS==0){
-        setZeroTimeout(function(){
-            self.update();
-        });
-    }else{
-        setTimeout(function(){
-            self.update();
-        }, 1000/FPS);
-    }
+    // if(FPS==0){
+    //     setZeroTimeout(function(){
+    //         self.update();
+    //     });
+    // }else{
+    setTimeout(function(){self.update();}, 1000/FPS);
+    // }
     
 }
+/** END OF GAME UPDATE FUNCTION */
+
+
+
+
+/** CHECK END CONDITION */
 
 Game.prototype.isEnd = function(){
     for(var i in this.birds){
@@ -255,7 +253,10 @@ Game.prototype.isEnd = function(){
     }
     return true;
 }
+/** END OF END CONDITION */
 
+
+/** DISPLAY FUNCTION */
 Game.prototype.display = function(){
     this.ctx.clearRect(0, 0, this.width, this.height);
     for(var i=0; i< Math.ceil(this.width / images.background.width)+1; i++){
@@ -299,7 +300,11 @@ Game.prototype.display = function(){
         self.display();
     })
 }
+/** END OF DISPLAY FUNCTION */
 
+
+
+/** LOAD THE WINDOW */
 window.onload = function(){
     var sprites = {
         bird: "./img/bird.png",
@@ -323,3 +328,4 @@ window.onload = function(){
         start();
     })  
 }
+/** END OF LOAD THE WINDOW */
