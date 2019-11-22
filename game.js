@@ -27,8 +27,9 @@
 
 var Neuvol;
 var game;
-var images = {};
 var maxScore = 0;
+
+var images = {};
 
 // Frame per second(speed)
 var FPS = 60;
@@ -40,7 +41,7 @@ var speed = function(fps){
 var loadImages = function(sources, callback){
     var no_pic = 0;
     var loaded = 0;
-    var imgs ={};
+    var imgs = {};
 
     for(var i in sources){
         no_pic++;
@@ -62,10 +63,10 @@ var Bird = function(json){
     this.width = 40;
     this.height = 30;
     
+    this.alive = true;
     this.velocity = 0.3;
     this.gravity = 0;
     this.jump = -6; //minus y to jump up
-    this.alive = true;
 
     this.init(json);
 
@@ -77,11 +78,11 @@ Bird.prototype.init = function(json){
     }
 }
 
-Bird.prototype.flap = function () {
+Bird.prototype.flap = function() {
     this.gravity = this.jump;
 }
 
-// bird falling down
+// addubg gravity and velocity to the bird
 Bird.prototype.update = function(){
     this.gravity += this.velocity;
     this.y += this.gravity;
@@ -93,10 +94,10 @@ Bird.prototype.isDead = function(height,pipes){
         return true;
     }
     for(var i in pipes){
-        if( !(
-            this.x > pipes[i].x + pipes[i].width || 
-            this.x + this.width < pipes[i].x || 
-            this.y > pipes[i].y + pipes[i].height || 
+        if(!(
+            this.x > pipes[i].x + pipes[i].width ||
+            this.x + this.width < pipes[i].x ||
+            this.y > pipes[i].y + pipes[i].height ||
             this.y + this.height < pipes[i].y 
         )){
             return true;
@@ -131,6 +132,7 @@ Pipe.prototype.update = function(){
 
 Pipe.prototype.isOut = function(){
     if(this.x + this.width < 0){
+        console.log("PIPE OUT");
         return true;
     }
 }
@@ -149,11 +151,11 @@ var Game = function(){
     this.height = this.canvas.height;
 
     // define the initial for neuroevolution 
-    this.interval = 0;
     this.spawnInterval = 90;
+    this.interval = 0;
     this.generation = 0;
-    this.alives = 0;
     this.gen = [];
+    this.alives = 0;
 
     this.score = 0;
     this.maxScore = 0;
@@ -198,7 +200,7 @@ Game.prototype.update = function(){
 
     for(var i in this.birds){
         if(this.birds[i].alive){
-            var inputs = [this.birds[i].y/this.height, nextHole];
+            var inputs = [this.birds[i].y / this.height, nextHole];
 
             var res = this.gen[i].compute(inputs);
 
@@ -212,10 +214,9 @@ Game.prototype.update = function(){
                 this.birds[i].alive = false;
                 this.alives--;
 
-
                 Neuvol.networkScore(this.gen[i],this.score); //store the scrore into the network
                 // auto restart if the game is end
-                if(this.isEnd()){
+                if(this.isItEnd()){
                     this.start();
                 }
             }
@@ -223,24 +224,24 @@ Game.prototype.update = function(){
     }
 
 
-    for(var i=0; i< this.pipes.length;i++){
+    for(var i=0; i < this.pipes.length;i++){
         this.pipes[i].update();
         if(this.pipes[i].isOut()){
-            this.pipes.slice(i,1);
+            this.pipes.splice(i, 1); // insert new pipes when running out of frame
             i--;
         }
     }
 
-    console.log(this.pipes)
+    // console.log(this.pipes)
 
     
 
     if(this.interval == 0){
         var deltaBord = 50;
-        var pipeHoll = 120;
-        var holePosition = Math.round(Math.random() * (this.height- deltaBord * 2 - pipeHoll))+ deltaBord;
-        this.pipes.push(new Pipe({x: this.width, y: 0, height: holePosition}));//push top pipe to the pipes array
-        this.pipes.push(new Pipe({x: this.width, y: holePosition + pipeHoll, height: this.height}));
+        var pipeHole = 120;
+        var holePosition = Math.round(Math.random() * (this.height - deltaBord * 2 - pipeHole))+ deltaBord;
+        this.pipes.push(new Pipe({x:this.width, y:0, height:holePosition}));//push top pipe to the pipes array
+        this.pipes.push(new Pipe({x:this.width, y:holePosition+pipeHole, height:this.height}));
         // console.log(this.pipes);
     }
 
@@ -251,12 +252,12 @@ Game.prototype.update = function(){
 
     this.score++;
     //update the max score
-    if(this.score > this.maxScore){
-        this.maxScore = this.score;
-    }else{
-        this.maxScore = this.maxScore;
-    }
-    // this.maxScore = (this.score > this.maxScore) ? this.score : this.maxScore; // update the max score
+    // if(this.score > this.maxScore){
+    //     this.maxScore = this.score;
+    // }else{
+    //     this.maxScore = this.maxScore;
+    // }
+    this.maxScore = (this.score > this.maxScore) ? this.score : this.maxScore; // update the max score
     var self = this;
 
     if(FPS==0){
@@ -264,7 +265,9 @@ Game.prototype.update = function(){
             self.update();
         });
     }else{
-        setTimeout(function(){self.update();}, 1000/FPS);
+        setTimeout(function(){
+            self.update();
+        }, 1000/FPS);
     }
 }
 /** END OF GAME UPDATE FUNCTION */
@@ -274,7 +277,7 @@ Game.prototype.update = function(){
 
 /** CHECK END CONDITION */
 
-Game.prototype.isEnd = function(){
+Game.prototype.isItEnd = function(){
     for(var i in this.birds){
         if(this.birds[i].alive){
             return false;
@@ -290,8 +293,8 @@ Game.prototype.display = function(){
 
     this.ctx.clearRect(0, 0, this.width, this.height);
 
-    for(var i=0; i< Math.ceil(this.width / images.background.width)+1; i++){
-        this.ctx.drawImage(images.background, i*images.background.width - Math.floor(this.backgroundX%images.background.width), 5);
+    for(var i=0; i < Math.ceil(this.width / images.background.width) + 1; i++){
+        this.ctx.drawImage(images.background, i*images.background.width - Math.floor(this.backgroundX%images.background.width), 0);
     }
 
     for(var i in this.pipes){
@@ -303,10 +306,7 @@ Game.prototype.display = function(){
     }
 
     this.ctx.fillStyle = "#FFC600";
-    this.ctx.strokeStyle='#CE9E00';
-
-    // console.log("Score: " + this.score);
-    // console.log("Max Score: " + this.maxScore);
+    this.ctx.strokeStyle="#CE9E00";
     
     for(var i in this.birds){
         if(this.birds[i].alive){
@@ -318,16 +318,17 @@ Game.prototype.display = function(){
         }
     }
 
+
     this.ctx.fillStyle = "red";
-    this.ctx.font= "15px Oswald, sans-serif";
+    this.ctx.font= "30px Oswald, sans-serif";
     this.ctx.fillText("Score: " + this.score, 10, 25);
     this.ctx.fillText("Max Score: " + this.maxScore, 10, 50);
     this.ctx.fillText("# of Generations: " + this.generation, 10, 75);
-    this.ctx.fillText("# of Bird Alive: "+  this.alives + " / "+ Neuvol.options.population, 10, 100);
+    this.ctx.fillText("# of Bird Alive: "+  this.alives + " / "+Neuvol.options.population, 10, 100);
     
 
     var self = this;
-    window.requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
         self.display();
     });
 }
@@ -337,11 +338,11 @@ Game.prototype.display = function(){
 
 /** LOAD THE WINDOW */
 window.onload = function(){
-    var component = {
-        bird: "img/bird.png",
-        background: "img/background.png",
-        pipetop: "img/pipetop.png",
-        pipebottom: "img/pipebottom.png",
+    var components = {
+        bird: "./img/bird3.png",
+        background: "./img/background.png",
+        pipetop: "./img/pipetop.png",
+        pipebottom: "./img/pipebottom.png",
     }
     var start = function(){
         Neuvol = new Neuroevolution({
@@ -354,7 +355,7 @@ window.onload = function(){
         game.display();
     }
 
-    loadImages(component, function(imgs){
+    loadImages(components, function(imgs){
         images = imgs;
         start();
     })  

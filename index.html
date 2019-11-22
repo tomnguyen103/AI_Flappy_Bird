@@ -1,20 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>AI Flappy Bird</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
 <body>
+     <!-- <embed src="audio/bg-music.mp3" autostart="true" hidden="true" loop="true"> -->
+    <audio autoplay hidden>
+        <source src="audio/bg-music.mp3" type="audio/mpeg">
+    </audio>
+   
     <canvas id="game" width="500" height="512"></canvas><br>
-    <!-- <button class="btn btn-primary" onclick="speed(60)">x1</button>
+    
+   
+    <button class="btn btn-primary" onclick="speed(60)">x1</button>
     <button class="btn btn-primary" onclick="speed(120)">x2</button>
-    <button class="btn btn-primary" onclick="speed(300)">x5</button>
     <button class="btn btn-primary" onclick="speed(180)">x3</button>
-    <button class="btn btn-danger" onclick="speed(0)">MAX</button> -->
+    <button class="btn btn-primary" onclick="speed(300)">x5</button>
+    <button class="btn btn-danger" onclick="speed(0)">MAX</button>
     <script src="Neuroevolution.js"></script>
     <script src="game.js"></script>
+
+    
+    
+        
+    <!-- <embed src="/audio/bg-music.mp3" autostart="true" loop="true" width="2" height="0"> -->
+
+    
 </body>
+
 </html>

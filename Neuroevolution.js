@@ -366,7 +366,7 @@ var Neuroevolution = function (options) {
 		var nexts = [];
 
 		for (var i = 0; i < Math.round(self.options.elitism *
-				self.options.population); i++) {
+			self.options.population); i++) {
 			if (nexts.length < self.options.population) {
 				// Push a deep copy of ith Genome's Nethwork.
 				nexts.push(JSON.parse(JSON.stringify(this.genomes[i].network)));
@@ -374,7 +374,7 @@ var Neuroevolution = function (options) {
 		}
 
 		for (var i = 0; i < Math.round(self.options.randomBehaviour *
-				self.options.population); i++) {
+			self.options.population); i++) {
 			var n = JSON.parse(JSON.stringify(this.genomes[0].network));
 			for (var k in n.weights) {
 				n.weights[k] = self.options.randomClamped();
@@ -518,8 +518,8 @@ var Neuroevolution = function (options) {
 			if (self.generations.generations.length >= 2) {
 				var genomes =
 					self.generations
-					.generations[self.generations.generations.length - 2]
-					.genomes;
+						.generations[self.generations.generations.length - 2]
+						.genomes;
 				for (var i in genomes) {
 					delete genomes[i].network;
 				}
