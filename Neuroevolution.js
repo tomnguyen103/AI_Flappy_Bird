@@ -316,7 +316,7 @@ var Neuroevolution = function (options) {
 			}
 
 		}
-		
+
 		// Insert genome into correct position.
 		this.genomes.splice(i, 0, genome);
 	}

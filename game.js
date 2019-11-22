@@ -1,5 +1,27 @@
 // Make the canvas moving using function() 
+(function() {
+	var timeouts = [];
+	var messageName = "zero-timeout-message";
 
+	function setZeroTimeout(fn) {
+		timeouts.push(fn);
+		window.postMessage(messageName, "*");
+	}
+
+	function handleMessage(event) {
+		if (event.source == window && event.data == messageName) {
+			event.stopPropagation();
+			if (timeouts.length > 0) {
+				var fn = timeouts.shift();
+				fn();
+			}
+		}
+	}
+
+	window.addEventListener("message", handleMessage, true);
+
+	window.setZeroTimeout = setZeroTimeout;
+})();
 
 
 
@@ -15,15 +37,15 @@ var speed = function(fps){
 }
 
 // Load Images Function
-var loadImages = function(src, callback){
+var loadImages = function(sources, callback){
     var no_pic = 0;
     var loaded = 0;
     var imgs ={};
 
-    for(var i in src){
+    for(var i in sources){
         no_pic++;
         imgs[i] = new Image();
-        imgs[i].src = src[i];
+        imgs[i].src = sources[i];
         imgs[i].onload = function(){
             loaded++;
             if(loaded == no_pic){
@@ -31,7 +53,6 @@ var loadImages = function(src, callback){
             }
         }
     }
-    console.log("images loaded")
 }
 
 // Bird class
@@ -40,11 +61,11 @@ var Bird = function(json){
     this.y = 250;
     this.width = 40;
     this.height = 30;
-
-    this.alive = true;
-    this.gravity = 0;
+    
     this.velocity = 0.3;
+    this.gravity = 0;
     this.jump = -6; //minus y to jump up
+    this.alive = true;
 
     this.init(json);
 
@@ -76,7 +97,7 @@ Bird.prototype.isDead = function(height,pipes){
             this.x > pipes[i].x + pipes[i].width || 
             this.x + this.width < pipes[i].x || 
             this.y > pipes[i].y + pipes[i].height || 
-            this.y + this.height< pipes[i].y 
+            this.y + this.height < pipes[i].y 
         )){
             return true;
         }
@@ -105,7 +126,7 @@ Pipe.prototype.init = function(json){
 }
 
 Pipe.prototype.update = function(){
-    this.x -= this.speed;
+    this.x -= this.speed; // render the background pic to move left as the game is going 
 }
 
 Pipe.prototype.isOut = function(){
@@ -120,9 +141,9 @@ Pipe.prototype.isOut = function(){
 
 //** Game Class */
 var Game = function(){
-    this.birds = [];
     this.pipes = [];
-    this.canvas = document.querySelector('#flappy');
+    this.birds = [];
+    this.canvas = document.querySelector('#game');
     this.ctx = this.canvas.getContext("2d");
     this.width = this.canvas.width;
     this.height = this.canvas.height;
@@ -133,8 +154,8 @@ var Game = function(){
     this.generation = 0;
     this.alives = 0;
     this.gen = [];
-    this.alives = 0;
 
+    this.score = 0;
     this.maxScore = 0;
 
     this.backgroundX = 0;
@@ -143,12 +164,12 @@ var Game = function(){
 
 Game.prototype.start = function(){
     this.interval = 0;
+    this.score = 0;
     this.pipes = [];
     this.birds = [];
-    this.score = 0;
 
     this.gen = Neuvol.nextGeneration();
-    // Store birds into this.birds using nextGeneration method in Neuvol(Neuroevolution)
+    // Store birds into an array using nextGeneration method in Neuvol(Neuroevolution)
     for(var i in this.gen){
         var b = new Bird();
         this.birds.push(b);
@@ -178,17 +199,21 @@ Game.prototype.update = function(){
     for(var i in this.birds){
         if(this.birds[i].alive){
             var inputs = [this.birds[i].y/this.height, nextHole];
+
             var res = this.gen[i].compute(inputs);
 
             if(res > 0.5 ){
                 this.birds[i].flap();
             }
+
             this.birds[i].update();
 
             if(this.birds[i].isDead(this.height, this.pipes)){
                 this.birds[i].alive = false;
                 this.alives--;
-                Neuvol.networkScore(this.gen[i],this.score);
+
+
+                Neuvol.networkScore(this.gen[i],this.score); //store the scrore into the network
                 // auto restart if the game is end
                 if(this.isEnd()){
                     this.start();
@@ -206,6 +231,10 @@ Game.prototype.update = function(){
         }
     }
 
+    console.log(this.pipes)
+
+    
+
     if(this.interval == 0){
         var deltaBord = 50;
         var pipeHoll = 120;
@@ -219,6 +248,7 @@ Game.prototype.update = function(){
     if(this.interval == this.spawnInterval){
         this.interval = 0;
     }
+
     this.score++;
     //update the max score
     if(this.score > this.maxScore){
@@ -229,14 +259,13 @@ Game.prototype.update = function(){
     // this.maxScore = (this.score > this.maxScore) ? this.score : this.maxScore; // update the max score
     var self = this;
 
-    // if(FPS==0){
-    //     setZeroTimeout(function(){
-    //         self.update();
-    //     });
-    // }else{
-    setTimeout(function(){self.update();}, 1000/FPS);
-    // }
-    
+    if(FPS==0){
+        setZeroTimeout(function(){
+            self.update();
+        });
+    }else{
+        setTimeout(function(){self.update();}, 1000/FPS);
+    }
 }
 /** END OF GAME UPDATE FUNCTION */
 
@@ -258,9 +287,11 @@ Game.prototype.isEnd = function(){
 
 /** DISPLAY FUNCTION */
 Game.prototype.display = function(){
+
     this.ctx.clearRect(0, 0, this.width, this.height);
+
     for(var i=0; i< Math.ceil(this.width / images.background.width)+1; i++){
-        this.ctx.drawImage(images.background, i*images.background.width - Math.floor(this.backgroundX % images.background.width), 0);
+        this.ctx.drawImage(images.background, i*images.background.width - Math.floor(this.backgroundX%images.background.width), 5);
     }
 
     for(var i in this.pipes){
@@ -274,31 +305,31 @@ Game.prototype.display = function(){
     this.ctx.fillStyle = "#FFC600";
     this.ctx.strokeStyle='#CE9E00';
 
-    console.log("Score: " + this.score);
-    console.log("Max Score: " + this.maxScore);
+    // console.log("Score: " + this.score);
+    // console.log("Max Score: " + this.maxScore);
     
     for(var i in this.birds){
         if(this.birds[i].alive){
             this.ctx.save();
-            this.ctx.translate(this.birds[i].x + this.birds[i].width/2, this.birds[i].y, this.birds[i].height/2);
-            this.ctx.rotate(Math.PI/2 * this.birds[i].gravity/20);
+            this.ctx.translate(this.birds[i].x + this.birds[i].width/2, this.birds[i].y + this.birds[i].height/2);
+            this.ctx.rotate(Math.PI/2 * this.birds[i].gravity/20); // make the bird head down
             this.ctx.drawImage(images.bird, -this.birds[i].width/2, -this.birds[i].height/2, this.birds[i].width, this.birds[i].height);
             this.ctx.restore();
         }
     }
 
-    this.ctx.fillStyle = "white";
+    this.ctx.fillStyle = "red";
     this.ctx.font= "15px Oswald, sans-serif";
-    this.ctx.fillText("Score: ", this.score, 10, 25);
-    this.ctx.fillText("Max Score: ", this.maxScore, 10, 50);
-    this.ctx.fillText("Generation: ", this.generation, 10, 75);
-    this.ctx.fillText("Alive: ", this.alives+" / "+ Neuvol.options.population, 10, 100);
+    this.ctx.fillText("Score: " + this.score, 10, 25);
+    this.ctx.fillText("Max Score: " + this.maxScore, 10, 50);
+    this.ctx.fillText("# of Generations: " + this.generation, 10, 75);
+    this.ctx.fillText("# of Bird Alive: "+  this.alives + " / "+ Neuvol.options.population, 10, 100);
     
 
     var self = this;
-    requestAnimationFrame(function(){
+    window.requestAnimationFrame(function(){
         self.display();
-    })
+    });
 }
 /** END OF DISPLAY FUNCTION */
 
@@ -306,11 +337,11 @@ Game.prototype.display = function(){
 
 /** LOAD THE WINDOW */
 window.onload = function(){
-    var sprites = {
-        bird: "./img/bird.png",
-        background: "./img/background.png",
-        pipetop: "./img/pipetop.png",
-        pipebottom: "./img/pipebottom.png",
+    var component = {
+        bird: "img/bird.png",
+        background: "img/background.png",
+        pipetop: "img/pipetop.png",
+        pipebottom: "img/pipebottom.png",
     }
     var start = function(){
         Neuvol = new Neuroevolution({
@@ -323,7 +354,7 @@ window.onload = function(){
         game.display();
     }
 
-    loadImages(sprites, function(imgs){
+    loadImages(component, function(imgs){
         images = imgs;
         start();
     })  
