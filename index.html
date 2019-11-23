@@ -5,14 +5,17 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
 <body>
-     <!-- <embed src="audio/bg-music.mp3" autostart="true" hidden="true" loop="true"> -->
-    <audio autoplay hidden>
-        <source src="audio/bg-music.mp3" type="audio/mpeg">
-    </audio>
-   
-    <canvas id="game" width="500" height="512"></canvas><br>
     
-   
+    <audio src="./audio/bg-music.mp3" autoplay="true" loop="true"></audio>
+
+    <canvas id="game" width="500" height="512"></canvas><br>
+    <!-- <audio autoplay>
+        <source src="/audio/bg-music.mp3" type="audio/mpeg">
+    </audio> -->
+    <!-- <embed src="audio/bg-music.mp3" autostart="true" hidden="true" loop="true"> -->
+        
+    
+    
     <button class="btn btn-primary" onclick="speed(60)">x1</button>
     <button class="btn btn-primary" onclick="speed(120)">x2</button>
     <button class="btn btn-primary" onclick="speed(180)">x3</button>

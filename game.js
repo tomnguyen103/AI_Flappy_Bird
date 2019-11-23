@@ -30,6 +30,7 @@ var game;
 var maxScore = 0;
 
 var images = {};
+// var sound = new Audio("/audio/bg-music.mp3");
 
 // Frame per second(speed)
 var FPS = 60;
@@ -132,7 +133,7 @@ Pipe.prototype.update = function(){
 
 Pipe.prototype.isOut = function(){
     if(this.x + this.width < 0){
-        console.log("PIPE OUT");
+        console.log("FRAME OUT");
         return true;
     }
 }
@@ -169,6 +170,8 @@ Game.prototype.start = function(){
     this.score = 0;
     this.pipes = [];
     this.birds = [];
+    // sound.play();
+    
 
     this.gen = Neuvol.nextGeneration();
     // Store birds into an array using nextGeneration method in Neuvol(Neuroevolution)
@@ -187,6 +190,7 @@ Game.prototype.start = function(){
 Game.prototype.update = function(){
 
     this.backgroundX += this.backgroundSpeed;
+    //sound.play();
 
     var nextHole = 0;
     if(this.birds.length > 0 ){
@@ -252,12 +256,12 @@ Game.prototype.update = function(){
 
     this.score++;
     //update the max score
-    // if(this.score > this.maxScore){
-    //     this.maxScore = this.score;
-    // }else{
-    //     this.maxScore = this.maxScore;
-    // }
-    this.maxScore = (this.score > this.maxScore) ? this.score : this.maxScore; // update the max score
+    if(this.score > this.maxScore){
+        this.maxScore = this.score;
+    }else{
+        this.maxScore = this.maxScore;
+    }
+    // this.maxScore = (this.score > this.maxScore) ? this.score : this.maxScore; // update the max score
     var self = this;
 
     if(FPS==0){
@@ -312,7 +316,7 @@ Game.prototype.display = function(){
         if(this.birds[i].alive){
             this.ctx.save();
             this.ctx.translate(this.birds[i].x + this.birds[i].width/2, this.birds[i].y + this.birds[i].height/2);
-            this.ctx.rotate(Math.PI/2 * this.birds[i].gravity/20); // make the bird head down
+            this.ctx.rotate(Math.PI/2 * this.birds[i].gravity/20); // rotate the bird head down
             this.ctx.drawImage(images.bird, -this.birds[i].width/2, -this.birds[i].height/2, this.birds[i].width, this.birds[i].height);
             this.ctx.restore();
         }
@@ -344,12 +348,14 @@ window.onload = function(){
         pipetop: "./img/pipetop.png",
         pipebottom: "./img/pipebottom.png",
     }
+    // var sound = new Sound("./audio/bg-music.mp3");
     var start = function(){
         Neuvol = new Neuroevolution({
-            population: 50,
-            network: [2,[2],1],
+            population: 100,
+            network: [2,[3],1],
         });
         game = new Game();
+        // sound.play();
         game.start();
         game.update();
         game.display();
@@ -358,6 +364,6 @@ window.onload = function(){
     loadImages(components, function(imgs){
         images = imgs;
         start();
-    })  
+    });
 }
 /** END OF LOAD THE WINDOW */
