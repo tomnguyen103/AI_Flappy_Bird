@@ -1,6 +1,6 @@
 # AI_Flappy_Bird
-My Second Project at Coding Dojo <br>
-Ultilize Neural Network Model within a simple HTML5 Flappy Birth Game <br>
-Let code and learn! <br>
-Time: 1 week <br>
-Technology: HTML5 Cavas, HTML DOM, Javascript, Neural Network Model
+My Second Project at Coding Dojo.
+Ultilize Neural Network Model within a simple HTML5 Flappy Birth Game.
+Let code and learn!.
+Time: 1 week.
+**Technology: HTML5 Cavas, HTML DOM, Javascript, Neural Network Model, Reinforcement Learning Concept**
